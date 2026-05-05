@@ -8,4 +8,5 @@
   :serial t
   :depends-on (#:nodgui #:libserialport)
   :components ((:file "package")
+               (:file "GUI")
                (:file "laser")))
