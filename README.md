@@ -1,16 +1,11 @@
 # laser
 ### _Ryan Burnside_
 
-This is a personal Common Lisp project to interface with my Creality Falon 10W Pro laser.
-
-You should not attempt to use this library for personal use.
-This project may be unsafe for you and your personal tools and I take no responsibility for any damage caused by it.
+This is a personal Common Lisp project to interface with my Creality Falcon 10W Pro laser.
 
 ## License
 
 MIT
-
-# laser
 
 # Disclaimer
 
