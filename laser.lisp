@@ -68,18 +68,21 @@
     str))
 
 (defparameter *test-set*
-  '("G21"
-    "G90"
-    "G17"
-    "M5"
-    "$H"
-    "G0 X100 Y100"
+  '("G21"          ; Millimeters
+    "G90"          ; Absolute positioning
+    "G17"          ; XY Plane
+    "M5"           ; Laser Off (spindle stop)
+    "$H"           ; GRBR Home
+    "G0 X100 Y100" ; Rapid Movement
     "G0 X200"
     "G0 Y200"
     "G0 X100"
     "G0 Y100"
-    "M5"
-    "G0 X0 Y0"))
+    "M5"           ; Laser Off
+    "G0 X0 Y0"     ; Move 0 0
+    ))
+
+(libserialport:*serial-port-hash*)
 
 (defun main (commands)
   ;; Get SERIAL-PORT-DESCRIPTION
@@ -87,19 +90,23 @@
   (setf *conn-desc* (create-port-dialog
                      (list-serial-ports)
                      :key #'serial-port-description-name))
-  
+
   ;; Establish connection based on serial port description
-  (if (libserialport:serial-port-p *conn*)
-      (libserialport:serial-flush-buffer *conn*)
-      (setf *conn* (libserialport:open-serial-port
-                    (serial-port-description-name *conn-desc*)
-                    :baud 115200
-                    :bits 8
-                    :stopbits 1
-                    :parity :sp-parity-none
-                    :XONXOFF  :SP-XONXOFF-DISABLED
-                    :MODE     :SP-MODE-READ-WRITE
-                    :flowcontrol :sp-flowcontrol-none)))
+  (when (and (serial-port-p *conn*) (serial-port-alive *conn*))
+    (format t "Port is already bound, shutting it down first.")
+    (shutdown-serial-port *conn*))
+
+  (setf *conn* (libserialport:open-serial-port
+                (serial-port-description-name *conn-desc*)
+                :baud 115200
+                :bits 8
+                :stopbits 1
+                :parity :sp-parity-none
+                :XONXOFF  :SP-XONXOFF-DISABLED
+                :MODE     :SP-MODE-READ-WRITE
+                :flowcontrol :sp-flowcontrol-none))
+
+  (libserialport:serial-flush-buffer *conn*)
 
   (loop :with RX-BUFFER-SIZE := 65535 ; Your machine here
         :with g-count := 0 ; sent gcode line counter
@@ -129,4 +136,7 @@
                            (t (setf grbl-out (concatenate 'string grbl-out out-temp))
                               (incf g-count)
                               (graham-dequeue char-per-gcode-queue))))
-            (send-command *conn* (format nil "~a~%" current-gcode))))
+            (send-command *conn* (format nil "~a~%" current-gcode)))
+
+  (shutdown-all-serial-ports)
+  )
