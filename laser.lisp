@@ -82,8 +82,6 @@
     "G0 X0 Y0"     ; Move 0 0
     ))
 
-(libserialport:*serial-port-hash*)
-
 (defun main (commands)
   ;; Get SERIAL-PORT-DESCRIPTION
   ;; (setf *conn-desc* (prompt-port-desc))
